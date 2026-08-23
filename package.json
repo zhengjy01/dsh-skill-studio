@@ -1,6 +1,6 @@
 {
   "name": "dsh-skill-studio",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Skill studio for DeepSeek Harness: visualize all agent skills, view/edit their SKILL.md bodies, and enable or disable model/user invocation — from the web settings panel and via skillmgr_* tools",
   "type": "module",
   "main": "lib/index.js",
