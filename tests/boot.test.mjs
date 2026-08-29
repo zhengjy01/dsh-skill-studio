@@ -94,11 +94,13 @@ const ctx = {
   systemPrompt: { section: (s) => { registered.sections.push(s.name); return () => {}; } },
   effect: (fn) => { const d = fn(); return () => (typeof d === "function" ? d() : undefined); },
   get: () => null,
-  logger: { info: () => {} }
+  logger: { info: () => {} },
+  interval: () => () => {}
 };
 m.apply(ctx, {});
-assert(registered.tools.length === 4 && registered.tools.join(",") === "skillmgr_list,skillmgr_get,skillmgr_save,skillmgr_policy", "4 个工具注册");
-assert(registered.routes.length === 3, "3 条路由注册（skill 路由合并 GET+POST）");
+assert(registered.tools.length === 10 && registered.tools.slice(0, 4).join(",") === "skillmgr_list,skillmgr_get,skillmgr_save,skillmgr_policy", "4 个 skill 工具 + 6 个提取工具注册");
+assert(registered.tools.includes("skillmgr_extract_run") && registered.tools.includes("skillmgr_extract_accept"), "提取工具已注册");
+assert(registered.routes.length === 10, "10 条路由注册（3 skill + 7 提取）");
 assert(registered.sections.length === 1, "系统提示段落注册");
 
 const merged = await listSkills(ctx, tmp);
