@@ -472,8 +472,12 @@ function renderEntry(ctx, version, date, changes, extraNotes = []) {
   if (dshRange) lines.push(`- DSH：\`${dshRange}\``);
   const nodeRange = pkg.engines?.node;
   if (nodeRange) lines.push(`- Node：\`${nodeRange}\``);
-  const majors = [...new Set(Object.values(pkg.peerDependencies || {}).filter((v) => typeof v === 'string' && v.startsWith('^')))];
-  if (majors.length) lines.push(`- peer：${majors.join(' || ')}`);
+  const dshPeers = [...new Set(
+    Object.entries(pkg.peerDependencies || {})
+      .filter(([n]) => n.startsWith('@deepseek-ai/dsh'))
+      .map(([, v]) => v),
+  )];
+  if (dshPeers.length) lines.push(`- DSH peer：${dshPeers.join(' || ')}`);
   if (pkg.dependencies && Object.keys(pkg.dependencies).length) {
     lines.push(`- 运行时依赖：${Object.entries(pkg.dependencies).map(([n, v]) => `\`${n}@${v}\``).join('、')}`);
   }
@@ -546,7 +550,24 @@ function npmAuthEnv() {
 
 function doPublish(ctx, version, tag, { dryRun, env }) {
   const args = ['publish', '--tag', tag, '--access', 'public'];
-  if (dryRun) args.push('--dry-run');
+  if (dryRun) {
+    // dry-run 不能真的调 `npm publish --dry-run`：此时 package.json 尚未 bump，
+    // 它会拿**旧版本号**去 registry 校验并报 "cannot publish over previously published versions"。
+    // 改用 `npm pack --dry-run` 验证分发物内容（不查 registry），再打印将要执行的命令。
+    info('npm pack --dry-run（验证分发物）');
+    const pack = trySh('npm', ['pack', '--dry-run', '--json'], { cwd: ctx.root, quiet: true });
+    if (pack.code === 0) {
+      try {
+        const j = JSON.parse(pack.stdout)[0];
+        dim(`tarball: ${j.filename} · ${j.entryCount} files · ${(j.size / 1024).toFixed(1)} kB`);
+        for (const f of j.files.map((f) => f.path)) dim(`  ${f}`);
+      } catch { dim('（无法解析 pack 输出）'); }
+    } else {
+      warn(`npm pack --dry-run 失败：${pack.stderr || pack.stdout}`);
+    }
+    info(`[dry-run] 将执行：npm ${args.join(' ')}`);
+    return { processing: false };
+  }
   info(`npm ${args.join(' ')}`);
   const r = trySh('npm', args, { cwd: ctx.root, env, quiet: true });
   if (r.code !== 0) {
