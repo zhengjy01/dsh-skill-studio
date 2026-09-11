@@ -1,0 +1,14 @@
+{
+  "$comment": "dsh-skill-studio 的发布配置，被 scripts/release.mjs 读取。",
+  "build": "none",
+  "aggregates": [
+    {
+      "name": "awesome-dsh-plugin（bruc3van，自动扫描型）",
+      "note": "仓库带 dsh-plugin topic 即由每日快照自动收录，无需手动同步"
+    },
+    {
+      "name": "本机 web profile（可选）",
+      "note": "dsh plugin --profile web add dsh-skill-studio@<ver> —— 重启 dsh web 需先征得用户同意"
+    }
+  ]
+}

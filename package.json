@@ -13,6 +13,9 @@
     "bundle": {
       "patch": "./cordis.patch.yml"
     },
+    "engines": {
+      "dsh": ">=0.1.5-rc.1"
+    },
     "client": {
       "inject": [
         "@deepseek-ai/dsh-client-runtime",
@@ -27,8 +30,13 @@
     "cordis.patch.yml",
     "README.md",
     "README.zh.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
+  "scripts": {
+    "release": "node scripts/release.mjs",
+    "release:check": "node scripts/release.mjs --check"
+  },
   "keywords": [
     "dsh",
     "dsh-plugin",
