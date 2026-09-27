@@ -6,11 +6,21 @@
 
 ## [Unreleased]
 
+<!-- 下一版内容从这里开始累积；发布时把本行下方的内容整段搬到新版本段落，保留本标题 -->
+
+## [0.3.0] - 2026-09-27
+
 ### 新增 (Added)
 
 - **skill 分组展示（第一期，只读）**：读取 SKILL.md frontmatter 的 `metadata.group` / `metadata.tags`（DSH 官方支持的 `metadata` 载体），Web 面板「Skill 工作台」按分组折叠展示，带筛选框、「按分组 / 平铺」视图切换与未分组区；`skillmgr_list` / `skillmgr_get` 输出新增 `group` / `tags` 字段。**纯展示层，不改变模型加载哪些 skill**。
 - `lib/scanner.js` 的 frontmatter 解析器支持**一层嵌套对象**（此前 `metadata:` 的缩进子键会被直接丢弃），并支持内联数组 `[a, b]` 与 `- item` 块列表；解析仍为零依赖、行级。
 - 测试新增：嵌套 frontmatter 解析（含 dedent 后继续解析顶层键）、扫描器与详情的分组字段、面板分组渲染冒烟（fake React 驱动真实客户端组件：分组视图 / 平铺视图 / 折叠态）。
+
+### 兼容性 (Compatibility)
+
+- DSH：`>=0.1.5-rc.1`
+- 分组数据只读：面板不会写回任何 `SKILL.md`；`metadata.group` 缺失的 skill 落「未分组」区。
+- 发布前可移植性验证：✅ 通过（隔离 `DSH_HOME` + tarball 安装 + 15s 稳定性观察）
 
 ## [0.2.2] - 2026-09-27
 
