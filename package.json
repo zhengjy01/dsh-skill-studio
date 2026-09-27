@@ -35,7 +35,10 @@
   ],
   "scripts": {
     "release": "node scripts/release.mjs",
-    "release:check": "node scripts/release.mjs --check"
+    "release:check": "node scripts/release.mjs --check",
+    "verify": "node scripts/portability.mjs --health /api/dsh-skill-studio/list",
+    "verify:full": "node scripts/portability.mjs --health /api/dsh-skill-studio/list --stability 30",
+    "verify:quick": "node scripts/portability.mjs --skip-audit --stability 5 --health /api/dsh-skill-studio/list"
   },
   "keywords": [
     "dsh",

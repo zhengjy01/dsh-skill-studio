@@ -367,7 +367,32 @@ function checkCompatDeclarations(ctx) {
 
   const files = pkg.files || [];
   if (!files.includes('CHANGELOG.md')) issues.push('`files` 未包含 CHANGELOG.md（变更记录不会进 tarball）');
-  if (!files.includes('lib')) issues.push('`files` 未包含 lib');
+  // 分发目录必须被 `files` 覆盖。传统布局是 `lib/`；bundle 型插件的代码可以放在自定义目录
+  // （如 dsh-wechat-clawbot 的 dsh-wechat-bot/ + dsh-client-wechat-ui/，压根没有 lib/），
+  // 这时按 main / exports / dsh.bundle.patch 实际声明的入口路径来校验，避免对合法布局误报。
+  // 2026-09-17：dsh-wechat-clawbot 发布时踩到该误报，改为布局自适应。
+  if (existsSync(join(ctx.root, 'lib'))) {
+    if (!files.includes('lib')) issues.push('`files` 未包含 lib');
+  } else {
+    const targets = new Set();
+    if (typeof pkg.main === 'string') targets.add(pkg.main)
+    for (const v of Object.values(pkg.exports || {})) {
+      if (typeof v === 'string') targets.add(v)
+      else if (v && typeof v === 'object') for (const vv of Object.values(v)) if (typeof vv === 'string') targets.add(vv)
+    }
+    if (pkg.dsh?.bundle?.patch) targets.add(pkg.dsh.bundle.patch)
+    const uncovered = [...targets].filter((rel) => {
+      const clean = String(rel).replace(/^\.\//, '')
+      // package.json 永远被 npm 打进 tarball，与 files 无关；README/LICENSE/CHANGELOG 同理自动包含。
+      if (clean === 'package.json' || /^(README|LICENSE|CHANGELOG)(\.|$)/i.test(clean)) return false
+      const top = clean.split('/')[0]
+      return !files.some((f) => {
+        const fc = String(f).replace(/^\.\//, '').replace(/\/$/, '')
+        return fc === clean || fc === top || clean.startsWith(`${fc}/`)
+      })
+    })
+    if (uncovered.length) issues.push(`\`files\` 未覆盖声明的入口路径：${uncovered.join('、')}`)
+  }
 
   // cordis.patch.yml 的 name 必须与包名一致（改名最易漏这里）
   const patchRel = pkg.dsh?.bundle?.patch;
@@ -528,8 +553,10 @@ function writeChangelog(ctx, version, changes, { dryRun }) {
 // ---------------------------------------------------------------------------
 
 function npmAuthEnv() {
-  // 凭据优先级：本机 ~/.dsh/dsh-npm.json 的 token（npm 自身未登录）
-  const dshNpm = join(process.env.HOME || '', '.dsh', 'dsh-npm.json');
+  // 凭据优先级：本机 <DSH_HOME>/dsh-npm.json 的 token（npm 自身未登录）。
+  // DSH_HOME 认 launcher / 救援胶囊搬迁过的 home，缺省才回落 ~/.dsh。
+  const dshHome = process.env.DSH_HOME || join(process.env.HOME || '', '.dsh');
+  const dshNpm = join(dshHome, 'dsh-npm.json');
   const env = {};
   const cleanups = [];
   if (existsSync(dshNpm)) {
