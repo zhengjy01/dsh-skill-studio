@@ -17,32 +17,85 @@ Visualize, edit and manage DeepSeek Harness **skills** right from the web settin
 
 ## Install
 
-```sh
-# local development
-dsh plugin --profile web add link:/path/to/dsh-skill-studio
+1. Add the plugin to your profile:
 
-# after publishing to GitHub (repo tagged with the `dsh-plugin` topic)
-dsh plugin --profile web add github:zhengjy01/dsh-skill-studio
-```
+   ```sh
+   # from npm
+   dsh plugin --profile web add dsh-skill-studio
 
-Restart `dsh web` to activate. No build step — `lib/` is plain ESM.
+   # or from GitHub (the repo carries the `dsh-plugin` topic)
+   dsh plugin --profile web add github:zhengjy01/dsh-skill-studio
+   ```
+
+   Expected: the command prints the resolved package and records it in that
+   profile's `dsh.profile.bundles` (the host only loads plugins listed there).
+
+   > **Screenshot slot 1 — install output.** Capture the terminal right after the
+   > command, last ~10 lines (resolved package + profile path). Redact your
+   > username / home path if it appears. Save as
+   > `docs/images/dsh-skill-studio-1-install.png`, then replace this block with
+   > `![Install output](docs/images/dsh-skill-studio-1-install.png)`.
+
+2. Restart `dsh web` (or use the sidebar **重启 / Restart** entry if the
+   `dsh-restart` plugin is installed).
+
+   Expected: the host boots with `dsh-skill-studio` in its plugin list. There is
+   no build step — `lib/` is plain ESM.
+
+3. Open the Web GUI → **设置 (Settings)** → **Skill 工作台**.
+
+   Expected: the settings nav shows the "Skill 工作台" entry, and the panel lists
+   every discovered skill with a source badge and its invocation state.
+
+   > **Screenshot slot 2 — panel is live.** Capture the settings nav (entry
+   > visible) plus the panel header and list. Redact any skill names you consider
+   > private. Save as `docs/images/dsh-skill-studio-2-panel.png`.
 
 ## Usage
 
-In the web settings page (设置 → Skill 管理器) you can:
+1. Click a skill in the list.
 
-- browse the full skill catalog with source badges and invocation state;
-- click a skill to read its body and edit it (textarea) → 保存 writes the file back;
-- flip 启用 / 模型可调用 / 用户可调用 switches.
+   Expected: the detail view shows that skill's body plus its source and path.
 
-You can also just tell your agent:
+2. Edit the body in the textarea, then click **保存 / Save**.
 
-```text
-列出所有 skill，并告诉我哪些被禁用了
-帮我禁用 session-knowledge 技能
-```
+   Expected: the panel reports a successful write, and the skill's `SKILL.md` on
+   disk now contains your text.
 
-The agent will use the `skillmgr_*` tools.
+   > **Screenshot slot 3 — editing works.** Capture the detail view with the
+   > editor open; use a non-sensitive skill (or blur its content). Save as
+   > `docs/images/dsh-skill-studio-3-edit.png`.
+
+3. Flip the **启用 / 模型可调用 / 用户可调用** switches.
+
+   Expected: the row's state changes immediately and stays changed after a
+   refresh (the switch writes `disable-model-invocation` /
+   `user-invocable` into the frontmatter).
+
+   > **Screenshot slot 4 — switches take effect.** Capture the list row with one
+   > switch off, then the same row after a page refresh. Save as
+   > `docs/images/dsh-skill-studio-4-switches.png`.
+
+4. Or just tell your agent:
+
+   ```text
+   列出所有 skill，并告诉我哪些被禁用了
+   帮我禁用 session-knowledge 技能
+   ```
+
+   Expected: the agent answers through the `skillmgr_*` tools.
+
+### Screenshots to add
+
+| # | Where | What it shows | How to capture | Suggested filename |
+| --- | --- | --- | --- | --- |
+| 1 | Install | The install command's output (package + profile) | Terminal right after step 1, last ~10 lines; redact home path | `docs/images/dsh-skill-studio-1-install.png` |
+| 2 | Install | The panel open in Settings with the skill list | Settings → Skill 工作台; include the nav entry | `docs/images/dsh-skill-studio-2-panel.png` |
+| 3 | Usage | Editing a skill body and saving | Detail view with the textarea open; use a non-sensitive skill | `docs/images/dsh-skill-studio-3-edit.png` |
+| 4 | Usage | The three switches after a refresh | Same row before/after refresh | `docs/images/dsh-skill-studio-4-switches.png` |
+
+After adding the images, re-run `npm pack --dry-run` and the portability gate
+(`npm run verify`) — the README is part of the published tarball.
 
 ## Notes
 
